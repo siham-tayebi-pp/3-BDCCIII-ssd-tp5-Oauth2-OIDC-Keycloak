@@ -1,4 +1,4 @@
-package net.tayebi.ecom_bdcc_app.entities;
+package net.tayebi.inventoryservice.entities;
 
 
 import jakarta.persistence.Entity;
