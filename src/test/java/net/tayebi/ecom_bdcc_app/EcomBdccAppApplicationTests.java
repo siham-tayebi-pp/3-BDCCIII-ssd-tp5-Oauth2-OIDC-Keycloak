@@ -1,0 +1,13 @@
+package net.tayebi.ecom_bdcc_app;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class EcomBdccAppApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
