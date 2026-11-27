@@ -1117,6 +1117,53 @@ Sans header `Authorization`, la réponse est **401**.
 ```bash
 npm install keycloak-angular keycloak-js
 ```
+![72.png](images/72.png)
+puis modules.ts on ajoute ca :
+import {APP_INITIALIZER, NgModule} from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+import { ProductsComponent } from './ui/products/products.component';
+import { CustomersComponent } from './ui/customers/customers.component';
+import {HttpClientModule} from "@angular/common/http";
+import {KeycloakAngularModule, KeycloakService} from "keycloak-angular";
+import { OrdersComponent } from './ui/orders/orders.component';
+import { OrderDetailsComponent } from './ui/order-details/order-details.component';
+
+function initializeKeycloak(keycloak: KeycloakService) {
+return () =>
+keycloak.init({
+config: {
+url: 'http://localhost:8080',
+realm: 'bdcc-realm',
+clientId: 'ecom-client-ang'
+},
+initOptions: {
+onLoad: 'check-sso',
+silentCheckSsoRedirectUri:
+window.location.origin + '/assets/silent-check-sso.html'
+}
+});
+}
+@NgModule({
+declarations: [
+AppComponent,
+ProductsComponent,
+CustomersComponent,
+OrdersComponent,
+OrderDetailsComponent
+],
+imports: [
+BrowserModule,
+AppRoutingModule, HttpClientModule, KeycloakAngularModule
+],
+providers: [
+{provide : APP_INITIALIZER, useFactory : initializeKeycloak, multi :true, deps : [KeycloakService]}
+],
+bootstrap: [AppComponent]
+})
+export class AppModule { }
 
 ### 11.3 Page de vérification silencieuse
 
@@ -1132,6 +1179,8 @@ Créez `src/assets/silent-check-sso.html` :
   </body>
 </html>
 ```
+et on jaoute ce provider en modusles.s:
+provide: APP_INITIALIZER,useFactory:initializeKeycloak,multi: true,deps: [KeycloakService]
 
 > Cette page permet à Keycloak de vérifier la session sans rediriger toute l'application (check-sso).
 
@@ -1201,7 +1250,7 @@ export class AppModule {}
 ```bash
 ng g guard guards/auth
 ```
-
+![73.png](images/73.png)
 Choisissez `CanActivate` si Angular le demande.
 
 ### 12.2 Code du guard
@@ -1273,9 +1322,22 @@ const routes: Routes = [
   },
 ];
 ```
+{ path: 'products', component: Products,canActivate:[KeycloakAuthGuard] },
+on met ca en producs 
 
+{ path: 'products', component: Products,canActivate:[KeycloakAuthGuard] ,data: { roles: ['ADMIN'] } },
+{ path: 'customers', component: Customers,canActivate:[KeycloakAuthGuard] ,data: { roles: ['USER'] } },
+KeycloakAngularModule
+et on importe 
 > Un utilisateur non connecté est redirigé vers Keycloak. Un utilisateur connecté sans le rôle requis n'accède pas à la route.
-
+ya prob 403 on descatove clein seret
+> 
+> et on autorize ca
+> ![74.png](images/74.png)
+> je va dan mon app angualr  je fait  products et voila keyclock auth
+> ![75.png](images/75.png)
+> e voial nos products
+> ![76.png](images/76.png)
 ---
 
 ## 13. Connexion, déconnexion et affichage du profil
@@ -1346,9 +1408,35 @@ Dans `app.component.html`, ajoutez à la barre de navigation :
 ```
 
 > **Contextualisation :** le menu n'affiche que les liens auxquels l'utilisateur a accès. C'est une aide pour l'interface. La **vraie** sécurité reste côté backend et dans le guard.
-
+on tese avec user 2 on voit products
+> 
+> ![77.png](images/77.png)
+> ms avec users on vos aps products car [a aamdin]
 ---
+![78.png](images/78.png)
 
+pour amliorr form login
+![79.png](images/79.png) avec rrememeber me , pasarod foregted ec
+s
+![80.png](images/80.png)
+
+on asisgn roel user by default to new users
+![81.png](images/81.png) et voial c assinr
+on cree run user ndee notre app
+![82.png](images/82.png)
+![83.png](images/83.png)
+on cifg user2 OTP:
+![84.png](images/84.png)
+et on voie qau il dmenae und code op qui doi tre utlise avc app mbile autheticator
+![85.png](images/85.png)
+uen fois on scanne on voix u  code et on le siasit
+ ms si on veux par mail parr phone on les configure
+puis on va a athentif et policies password et on seppeciife le sporlicies
+![86.png](images/86.png)
+pour form auth
+on peut soit cre rnos propre them eou tilsier ceux esixtnat depusi icic 
+
+![87.png](images/87.png)
 ## 14. Tester le frontend
 
 | Test | Résultat attendu |
@@ -1437,3 +1525,775 @@ Le professeur indique que le prochain cours montrera :
 - les identity providers (GitHub, Facebook, Google) ;
 - la configuration complète de Google, avec son client ID et son client secret.
 
+
+
+
+
+
+## Étape 3 : Créer le microservice `order-service`
+
+### 3.1 Créer le module
+
+Dans le projet parent (le même que `inventory-service`) :
+
+1. Clic droit sur le projet > **New** > **Module** > **Spring Initializr**.
+2. Paramètres :
+    - Name : `order-service`
+    - Group : `ma.enset` (ou le groupe utilisé dans votre projet)
+    - Java : **21**
+    - Spring Boot : **3.2.2**
+
+### 3.2 Dépendances
+
+- **Spring Web**
+- **Spring Data JPA**
+- **H2 Database**
+- **Lombok**
+- **Eureka Discovery Client** (désactivé plus tard dans `application.properties`)
+- **Config Client** (désactivé plus tard)
+- **OAuth2 Resource Server**
+- **OpenFeign** (`spring-cloud-starter-openfeign`) : permet de communiquer avec `inventory-service`
+![88.png](images/88.png)
+Ajouter aussi la documentation Swagger, comme le professeur (`springdoc-openapi`) :
+
+```xml
+<dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    <version>2.3.0</version>
+</dependency>
+```
+
+> Si Maven signale un conflit avec Spring Cloud, utilisez le BOM Spring Cloud compatible avec Spring Boot 3.2 (série `2023.0.x`).
+
+### 3.3 Packages
+
+Créer ces packages dans `src/main/java/<votre.package>/` :
+
+```
+entities/
+repositories/
+service/        (prévu pour plus tard)
+web/
+security/       (copié depuis inventory-service)
+feign/
+model/
+```
+
+---
+
+## Étape 4 : Configurer `order-service`
+
+Fichier `src/main/resources/application.properties` :
+
+```properties
+server.port=8088
+spring.application.name=order-service
+
+spring.datasource.url=jdbc:h2:mem:order-db
+spring.h2.console.enabled=true
+
+spring.cloud.config.enabled=false
+spring.cloud.discovery.enabled=false
+
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8080/realms/bdcc/protocol/openid-connect/certs
+```
+
+> **Important :** si Keycloak est sur `8180`, remplacez `8080` par `8180` dans `jwk-set-uri`.
+>
+> Le professeur a oublié ces deux propriétés au départ : sans `jwk-set-uri`, le service ne peut pas vérifier la signature du JWT. Vous obtiendrez alors une erreur au démarrage (`Unable to find a JWT decoder` ou similaire).
+
+---
+
+## Étape 5 : Créer les entités
+
+### 5.1 Énumération `OrderState`
+
+`entities/OrderState.java`
+
+```java
+package ma.enset.orderservice.entities;
+
+public enum OrderState {
+    PENDING,
+    CONFIRMED,
+    CANCELLED
+}
+```
+
+### 5.2 Entité `Order`
+
+`entities/Order.java`
+
+```java
+package ma.enset.orderservice.entities;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@Entity
+// Le nom "order" est un mot réservé en SQL (ORDER BY) : on nomme la table "orders"
+@Table(name = "orders")
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Order {
+
+    @Id
+    private String id;
+
+    private LocalDate date;
+
+    @Enumerated(EnumType.STRING)
+    private OrderState state;
+
+    @OneToMany(mappedBy = "order")
+    private List<ProductItem> productItems;
+}
+```
+
+> **Pourquoi `@Table(name = "orders")` ?** Le professeur a rencontré une erreur lors de la création de la table : `order` est un mot-clé SQL. Le nom de la table doit donc être différent.
+
+### 5.3 Entité `ProductItem`
+
+`entities/ProductItem.java`
+
+```java
+package ma.enset.orderservice.entities;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
+import lombok.*;
+import ma.enset.orderservice.model.Product;
+
+@Entity
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProductItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // Identifiant du produit dans inventory-service
+    private String productId;
+
+    private double price;
+    private int quantity;
+
+    @ManyToOne
+    // WRITE_ONLY : évite la boucle infinie order -> productItems -> order -> ...
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private Order order;
+
+    // Information récupérée depuis inventory-service (pas une colonne en base)
+    @Transient
+    private Product product;
+}
+```
+
+> **Boucle infinie :** la relation est bidirectionnelle (`Order` contient une liste de `ProductItem`, et `ProductItem` contient un `Order`). Lors de la sérialisation JSON, Jackson tourne en boucle. Le professeur propose une solution rapide avec `@JsonProperty`. La solution recommandée est d'utiliser des **DTO**, présentés plus tard dans le cours.
+>
+> **`@Transient` :** l'attribut `product` ne doit pas être enregistré en base. Il sert uniquement à afficher le détail du produit.
+
+---
+
+## Étape 6 : Créer les repositories
+
+`repositories/OrderRepository.java`
+
+```java
+package ma.enset.orderservice.repositories;
+
+import ma.enset.orderservice.entities.Order;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface OrderRepository extends JpaRepository<Order, String> {
+}
+```
+
+`repositories/ProductItemRepository.java`
+
+```java
+package ma.enset.orderservice.repositories;
+
+import ma.enset.orderservice.entities.ProductItem;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ProductItemRepository extends JpaRepository<ProductItem, Long> {
+}
+```
+
+---
+
+## Étape 7 : Client Feign vers `inventory-service`
+
+### 7.1 Modèle `Product` côté order-service
+
+Le professeur copie la classe `Product` de l'inventaire et supprime les annotations JPA. Il ne reste que les attributs.
+
+`model/Product.java`
+
+```java
+package ma.enset.orderservice.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Product {
+    private String id;
+    private String name;
+    private double price;
+    private int quantity;
+}
+```
+
+### 7.2 Interface Feign
+
+`feign/ProductRestClient.java`
+
+```java
+package ma.enset.orderservice.feign;
+
+import ma.enset.orderservice.model.Product;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import java.util.List;
+
+// Dans le cours, l'URL est écrite en dur. Avec Eureka, on mettra simplement le nom du service.
+@FeignClient(name = "inventory-service", url = "http://localhost:8087")
+public interface ProductRestClient {
+
+    @GetMapping("/api/products")
+    List<Product> getAllProducts();
+
+    @GetMapping("/api/products/{id}")
+    Product getProductById(@PathVariable("id") String id);
+}
+```
+
+### 7.3 Activer Feign
+
+Dans la classe principale :
+
+```java
+@SpringBootApplication
+@EnableFeignClients
+public class OrderServiceApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(OrderServiceApplication.class, args);
+    }
+}
+```
+
+Import : `org.springframework.cloud.openfeign.EnableFeignClients`.
+
+---
+
+## Étape 8 : Préparer `inventory-service` (identifiants fixes)
+
+Le professeur constate qu'au démarrage, `order-service` appelle `inventory-service` pour récupérer les produits. Comme `inventory-service` est sécurisé, cet appel échoue avec **401**, car il n'y a pas de token au démarrage.
+
+La solution retenue est de **ne pas appeler l'inventaire au démarrage** et d'utiliser des identifiants fixes. Dans `inventory-service`, modifier le `CommandLineRunner` :
+
+```java
+@Bean
+CommandLineRunner start(ProductRepository productRepository) {
+    return args -> {
+        productRepository.save(Product.builder()
+                .id("P01").name("Computer").price(1200).quantity(10).build());
+        productRepository.save(Product.builder()
+                .id("P02").name("Printer").price(100).quantity(34).build());
+        productRepository.save(Product.builder()
+                .id("P03").name("Smart Phone").price(4000).quantity(5).build());
+    };
+}
+```
+
+Redémarrer `inventory-service`.
+
+> Le professeur précise que, dans la réalité, un service ne démarre pas en interrogeant un autre service pour insérer ses données. Ici, c'est seulement pour le test.
+
+---
+
+## Étape 9 : Créer les données de test dans `order-service`
+
+`InventoryServiceApplication` devient `OrderServiceApplication` dans le package de `order-service`. Ajouter le `CommandLineRunner` :
+
+```java
+@Bean
+CommandLineRunner start(OrderRepository orderRepository,
+                        ProductItemRepository productItemRepository) {
+    return args -> {
+        List<String> productIds = List.of("P01", "P02", "P03");
+        Random random = new Random();
+
+        for (int i = 1; i <= 5; i++) {
+            Order order = Order.builder()
+                    .id(UUID.randomUUID().toString())
+                    .date(LocalDate.now())
+                    .state(OrderState.PENDING)
+                    .build();
+            orderRepository.save(order);
+
+            for (String productId : productIds) {
+                ProductItem item = ProductItem.builder()
+                        .productId(productId)
+                        .price(Math.random() * 6000 + 1000)  // prix aléatoire, pour le test
+                        .quantity(1 + random.nextInt(20))
+                        .order(order)
+                        .build();
+                productItemRepository.save(item);
+            }
+        }
+    };
+}
+```
+
+Imports nécessaires : `java.time.LocalDate`, `java.util.List`, `java.util.Random`, `java.util.UUID`.
+
+> Le professeur crée d'abord des commandes sans sécurité, puis vérifie dans la console H2. La sécurité est ajoutée à l'étape suivante.
+
+Démarrer `order-service`, puis ouvrir `http://localhost:8088/h2-console` avec la JDBC URL `jdbc:h2:mem:order-db`. Vérifier que les tables `orders` et `product_item` contiennent les données.
+
+---
+
+## Étape 10 : Sécurité de `order-service`
+
+### 10.1 Copier la configuration
+
+Copier le package `security/` de `inventory-service` :
+
+- `SecurityConfig`
+- `KeycloakJwtConverter`
+
+Dans `SecurityConfig`, adapter les règles d'accès.
+
+**Première version (développement, sans token) :**
+
+```java
+.authorizeHttpRequests(ar -> ar
+    .requestMatchers("/h2-console/**").permitAll()
+    .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+    .requestMatchers("/api/orders/**").permitAll()
+    .anyRequest().authenticated())
+```
+
+**Version finale (sécurisée) :**
+
+```java
+.authorizeHttpRequests(ar -> ar
+    .requestMatchers("/h2-console/**").permitAll()
+    .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+    .requestMatchers("/api/orders/**").hasAuthority("user")
+    .anyRequest().authenticated())
+```
+
+> Ne pas oublier `http.cors(Customizer.withDefaults())` et le bean `CorsConfigurationSource`, comme dans `inventory-service`. Sans cela, Angular ne peut pas appeler `localhost:8088`.
+
+### 10.2 Documentation Swagger
+
+Ouvrir `http://localhost:8088/swagger-ui.html`. Si la page demande une authentification, vérifier que les chemins `/swagger-ui/**` et `/v3/api-docs/**` sont autorisés (étape 10.1).
+
+---
+
+## Étape 11 : Contrôleur REST des commandes
+
+`web/OrderRestController.java`
+
+```java
+package ma.enset.orderservice.web;
+
+import lombok.RequiredArgsConstructor;
+import ma.enset.orderservice.entities.Order;
+import ma.enset.orderservice.entities.ProductItem;
+import ma.enset.orderservice.feign.ProductRestClient;
+import ma.enset.orderservice.repositories.OrderRepository;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api")
+@RequiredArgsConstructor
+public class OrderRestController {
+
+    private final OrderRepository orderRepository;
+    private final ProductRestClient productRestClient;
+
+    @GetMapping("/orders")
+    public List<Order> listOrders() {
+        return orderRepository.findAll();
+    }
+
+    @GetMapping("/orders/{id}")
+    public Order getOrder(@PathVariable String id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Commande introuvable : " + id));
+
+        // Enrichir chaque ligne avec le détail du produit (inventory-service)
+        for (ProductItem item : order.getProductItems()) {
+            item.setProduct(productRestClient.getProductById(item.getProductId()));
+        }
+        return order;
+    }
+}
+```
+
+Pour la liste (`/api/orders`), le professeur ne recharge pas les produits. Vous pouvez le faire de la même manière dans une boucle.
+
+Redémarrer `order-service`.
+
+---
+
+## Étape 12 : Propager le token avec un intercepteur Feign
+
+Quand le frontend appelle `order-service` avec un token, `order-service` appelle ensuite `inventory-service`. Sans token, l'appel est refusé (**401**). Il faut donc transmettre le même token dans l'appel Feign.
+
+`feign/FeignInterceptor.java`
+
+```java
+package ma.enset.orderservice.feign;
+
+import feign.RequestInterceptor;
+import feign.RequestTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.stereotype.Component;
+
+@Component
+public class FeignInterceptor implements RequestInterceptor {
+
+    @Override
+    public void apply(RequestTemplate template) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication instanceof JwtAuthenticationToken jwtAuth) {
+            String token = jwtAuth.getToken().getTokenValue();
+            template.header("Authorization", "Bearer " + token);
+        }
+    }
+}
+```
+
+> **Fonctionnement :** à chaque requête Feign, l'intercepteur lit le contexte de sécurité de la requête entrante, récupère le JWT et l'ajoute dans le header `Authorization`.
+>
+> **Astuce du professeur :** pour vérifier le type de l'objet, affichez `authentication.getClass().getName()` dans l'intercepteur. Le type affiché est `JwtAuthenticationToken`.
+
+---
+
+## Étape 13 : Tester avec Postman
+
+### 13.1 Obtenir un token
+
+- **Méthode :** `POST`
+- **URL :** `http://localhost:8080/realms/bdcc/protocol/openid-connect/token`
+- **Header :** `Content-Type: application/x-www-form-urlencoded`
+- **Body :**
+
+| Clé | Valeur |
+|---|---|
+| `grant_type` | `password` |
+| `username` | `user2` |
+| `password` | `1234` |
+| `client_id` | `eCom client ang` (votre client Angular) |
+
+Copier `access_token`.
+
+> Si Keycloak répond `unauthorized_client`, activez **Direct access grants** sur le client.
+
+### 13.2 Appeler `order-service`
+
+- **Méthode :** `GET`
+- **URL :** `http://localhost:8088/api/orders`
+- **Header :** `Authorization: Bearer <access_token>`
+
+Résultat attendu : la liste des commandes avec leurs `productItems`.
+
+Tester aussi `http://localhost:8088/api/orders/<id>` avec un ID de commande. La réponse doit contenir le nom du produit (`product.name`) grâce à l'appel Feign.
+
+Sans header : **401**.
+
+---
+
+## Étape 14 : Frontend Angular : liste des commandes
+
+### 14.1 Créer le composant
+
+Dans le projet Angular :
+
+```bash
+ng g c ui/orders
+```
+
+### 14.2 Code du composant liste
+
+`src/app/ui/orders/orders.component.ts`
+
+```ts
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+@Component({
+  selector: 'app-orders',
+  templateUrl: './orders.component.html',
+  styleUrls: ['./orders.component.css'],
+})
+export class OrdersComponent implements OnInit {
+  public orders: any[] = [];
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.http.get<any[]>('http://localhost:8088/api/orders').subscribe({
+      next: (data) => (this.orders = data),
+      error: (err) => console.error(err),
+    });
+  }
+}
+```
+
+`src/app/ui/orders/orders.component.html`
+
+```html
+<h2>Orders</h2>
+<table class="table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Date</th>
+      <th>State</th>
+      <th>Products</th>
+      <th>Détail</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let order of orders">
+      <td>{{ order.id }}</td>
+      <td>{{ order.date | date: 'dd/MM/yyyy' }}</td>
+      <td>{{ order.state }}</td>
+      <td>{{ order.productItems?.length }}</td>
+      <td>
+        <button class="btn btn-primary btn-sm" (click)="showDetails(order)">
+          Voir
+        </button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+```
+
+Ajouter `showDetails` dans la classe (étape 15).
+
+### 14.3 Route protégée
+
+Dans `app-routing.module.ts` :
+
+```ts
+import { OrdersComponent } from './ui/orders/orders.component';
+import { OrderDetailsComponent } from './ui/order-details/order-details.component';
+
+const routes: Routes = [
+  // ... routes existantes ...
+  {
+    path: 'orders',
+    component: OrdersComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ['user'] },
+  },
+  {
+    path: 'orders/:id',
+    component: OrderDetailsComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ['user'] },
+  },
+];
+```
+
+Ajouter un lien `Orders` dans la barre de navigation (`app.component.html`) :
+
+```html
+<li class="nav-item" *ngIf="hasRole('user')">
+  <a class="nav-link" routerLink="orders">Orders</a>
+</li>
+```
+
+### 14.4 Ajouter `HttpClientModule`
+
+Dans `app.module.ts`, `HttpClientModule` doit être dans les `imports` (déjà fait si vous avez suivi le guide 2).
+
+---
+
+## Étape 15 : Détail d'une commande
+
+### 15.1 Navigation depuis la liste
+
+Dans `orders.component.ts`, ajouter `Router` :
+
+```ts
+import { Router } from '@angular/router';
+
+constructor(private http: HttpClient, private router: Router) {}
+
+showDetails(order: any): void {
+  this.router.navigateByUrl('/orders/' + order.id);
+}
+```
+
+### 15.2 Composant détail
+
+```bash
+ng g c ui/order-details
+```
+
+Le professeur a créé le composant dans le dossier `ui`. Le composant doit être déclaré dans `app.module.ts` (ou importé si vous êtes en standalone).
+
+`src/app/ui/order-details/order-details.component.ts`
+
+```ts
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+
+@Component({
+  selector: 'app-order-details',
+  templateUrl: './order-details.component.html',
+  styleUrls: ['./order-details.component.css'],
+})
+export class OrderDetailsComponent implements OnInit {
+  public orderDetails: any;
+
+  constructor(private route: ActivatedRoute, private http: HttpClient) {}
+
+  ngOnInit(): void {
+    const id = this.route.snapshot.params['id'];
+    this.http.get<any>('http://localhost:8088/api/orders/' + id).subscribe({
+      next: (data) => (this.orderDetails = data),
+      error: (err) => console.error(err),
+    });
+  }
+
+  getTotal(): number {
+    let total = 0;
+    for (let item of this.orderDetails.productItems) {
+      total += item.price * item.quantity;
+    }
+    return total;
+  }
+}
+```
+
+`src/app/ui/order-details/order-details.component.html`
+
+```html
+<div *ngIf="orderDetails">
+  <h2>Commande {{ orderDetails.id }}</h2>
+
+  <ul class="list-group mb-3">
+    <li class="list-group-item">
+      Date : {{ orderDetails.date | date: 'dd/MM/yyyy' }}
+    </li>
+    <li class="list-group-item">
+      État : {{ orderDetails.state }}
+    </li>
+  </ul>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Produit</th>
+        <th>Prix unitaire</th>
+        <th>Quantité</th>
+        <th>Montant</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of orderDetails.productItems">
+        <td>{{ item.product?.name }}</td>
+        <td>{{ item.price | number: '1.2-2' }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>{{ item.price * item.quantity | number: '1.2-2' }}</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <th colspan="3">Total</th>
+        <th>{{ getTotal() | number: '1.2-2' }}</th>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+```
+
+> **Erreur fréquente :** `Cannot read property 'date' of undefined`. Elle apparaît si on affiche les données avant leur chargement. Le `*ngIf="orderDetails"` règle ce problème.
+>
+> **Formatage :** `number: '1.2-2'` affiche deux décimales. `date: 'dd/MM/yyyy'` formate la date.
+
+---
+
+## Étape 16 : Tester l'ensemble
+
+1. Démarrer dans cet ordre : Keycloak, `inventory-service` (8087), `order-service` (8088), puis Angular (`ng serve`, port 4200).
+2. Ouvrir `http://localhost:4200`, cliquer sur **Login**, puis se connecter avec `user2`.
+3. Cliquer sur **Orders** : la liste doit s'afficher.
+4. Cliquer sur **Voir** : le détail avec le nom des produits, les prix, les quantités et le total doit s'afficher.
+5. Se déconnecter, puis se connecter avec `user1` (rôle `user` uniquement) : la liste des commandes doit rester accessible, la liste des produits (`/products`) doit être refusée.
+
+Vérifier aussi dans les outils de développement (F12, onglet **Réseau**) que la requête `GET /api/orders` contient bien l'en-tête `Authorization: Bearer ...`.
+
+---
+
+## Étape 17 : Problèmes rencontrés et solutions
+
+| Erreur | Cause | Solution |
+|---|---|---|
+| `Table "ORDER" not found` ou erreur SQL sur la table `order` | `order` est un mot réservé SQL | `@Table(name = "orders")` |
+| Boucle infinie / `StackOverflowError` en JSON | Relation bidirectionnelle `Order` <-> `ProductItem` | `@JsonProperty(access = WRITE_ONLY)` sur `order`, ou DTO |
+| `401` au démarrage de `order-service` | Appel Feign vers un service sécurisé sans token | Ne pas appeler l'inventaire au démarrage (identifiants fixes P01, P02, P03) |
+| `401` sur `inventory-service` depuis `order-service` | Token non transmis | Intercepteur Feign `FeignInterceptor` |
+| `No JWT decoder` ou `Unable to find ...` au démarrage | `jwk-set-uri` absent | Ajouter la propriété dans `application.properties` |
+| `blocked by CORS policy` sur le port 8088 | CORS non configuré dans `order-service` | Copier le bean `CorsConfigurationSource` et `http.cors(...)` |
+| `Cannot read property 'date' of undefined` | Données affichées avant chargement | `*ngIf="orderDetails"` |
+| Erreur de compilation sur `for each` | Syntaxe TypeScript incorrecte | Utiliser `for (let item of ...)` |
+| Total affiché incorrect | Attribut mal orthographié | Vérifier `item.price` et `item.quantity` |
+
+---
+
+## Étape 18 : À faire ensuite (évoqué par le professeur)
+
+- Créer une couche **service** et des **DTO** pour séparer les entités des réponses JSON.
+- Ajouter **Gateway** (Spring Cloud Gateway), **Eureka Discovery** et **Config Server** pour finaliser l'architecture microservices.
+- Remplacer les URL écrites en dur (`localhost:8087`) par le nom des services (`inventory-service`) dans Feign.
+- Ajouter une méthode de formatage pour les montants et les dates.
+
+---
+
+## Correspondances avec votre installation
+
+| Élément du cours | Votre installation |
+|---|---|
+| Realm `bdcc` | `enset-bdcc-realme` |
+| Keycloak `8080` | `8180` |
+| Client `eCom client ang` | Le Client ID exact de votre client Angular |
+| Inventory `8087` | Inchangé |
+| Order `8088` | Inchangé |
+
+Si vous utilisez `8180` et `enset-bdcc-realme`, remplacez-les dans toutes les URL de ce guide : `application.properties`, `ProductRestClient` (si besoin), `initializeKeycloak` (Angular) et Postman.
