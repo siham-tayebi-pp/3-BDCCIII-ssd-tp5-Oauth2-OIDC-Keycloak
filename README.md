@@ -482,8 +482,6 @@ spring.h2.console.enabled=true
 spring.cloud.config.enabled=false
 spring.cloud.discovery.enabled=false
 
-# Clé publique de Keycloak pour vérifier la signature des JWT
-spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8180/realms/bdcc/protocol/openid-connect/certs
 ```
 
 ---
@@ -797,17 +795,111 @@ CorsConfigurationSource corsConfigurationSource() {
 }
 ```
 on restets aprs vaoir mit a et supriemr cross oriigni et c bon
-
-Et dans la chaîne de filtres :
-
-```java
-http.cors(Customizer.withDefaults())
-```
+ et ca marhc tres bein:
+![56.png](images/56.png)
 
 > En production, remplacez `List.of("*")` par `List.of("http://localhost:4200")`.
 
 ---
+COmem notre keyclock et deja demarre 
+don c on apsse a 
+on cree un nv ccleint dna keycock
+![57.png](images/57.png)
+![58.png](images/58.png)
+les roles user et amin sont dej acreer
+et les user1 e euser 2 dsont deja creer
+pour els ste dauth c deja fait sur postman
+on essaye d tse rmiantnn ss http client e intellij:
+POST http://localhost:8180/realms/enset-bdcc-realme/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
 
+grant_type=password&username=user2&password=Wyuw6089?&client_id=ecom-client-ang
+
+<> 2026-11-27T140652.200.json
+<> 2026-11-27T140604.400.json
+<> 2026-11-27T140434.404.json
+
+###
+
+![59.png](images/59.png) 
+ett voila lauth c amrche
+pour auth avce refrsh token en fiat
+POST http://localhost:8180/realms/enset-bdcc-realme/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=refresh_token&client_id=ecom-client-ang&refresh_token=eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICIwNzUyOWRmNC04MmVhLTRkMDAtYTg2NC01MDk4MjE0NzlkNmMifQ.eyJleHAiOjE3OTU3ODY2MTIsImlhdCI6MTc5NTc4NDgxMiwianRpIjoiMzFlM2MyNWQtM2FjYi1hNTFkLWU5MGUtNTA1ZDk3MzMyNWQ3IiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MTgwL3JlYWxtcy9lbnNldC1iZGNjLXJlYWxtZSIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODE4MC9yZWFsbXMvZW5zZXQtYmRjYy1yZWFsbWUiLCJzdWIiOiJkMjZmOTY5NS1lZWVhLTRjZmMtODY3Mi02MWI4NzNmMjgyOTAiLCJ0eXAiOiJSZWZyZXNoIiwiYXpwIjoiZWNvbS1jbGllbnQtYW5nIiwic2lkIjoicVdGWmxueHJ0YU5hRVp0ZFZDT3pBYXFuIiwic2NvcGUiOiJiYXNpYyBwcm9maWxlIHdlYi1vcmlnaW5zIGVtYWlsIGFjciByb2xlcyIsImF1ZF94IjoiYWNjb3VudCIsInByb3YiOiJkZWZhdWx0In0.zdp7ph5uj1sozl5EdAhjhNsLB9oQgV-mVe845G5Mz2A90E-hGM73pIsdszPDSg5A-TXTXyg9teVXJ_z8N-Oihw
+
+<> 2026-11-27T141019.200.json
+
+![60.png](images/60.png)
+on active ca pour abor nore secr dna s ecom-client -ang 
+![61.png](images/61.png)
+la on a le secre on rsert donc dans intellij http cient:
+
+POST http://localhost:8180/realms/enset-bdcc-realme/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&client_id=ecom-client-ang&client_secret=mAYzWdO6Ga1Pfomfr49fWEIpcGTI7cgAtyyWKqwI5g7RxH1PLvVaKUaP7IGHi35hMLe5oNxelEt2kpN1Ta3PR7
+![62.png](images/62.png)
+on reste avec refrh tokn et clint secre
+comm ca
+POST http://localhost:8180/realms/enset-bdcc-realme/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=refresh_token&client_id=ecom-client-ang&refresh_token=eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICIwNzUyOWRmNC04MmVhLTRkMDAtYTg2NC01MDk4MjE0NzlkNmMifQ.eyJleHAiOjE3OTU3ODY2MTIsImlhdCI6MTc5NTc4NDgxMiwianRpIjoiMzFlM2MyNWQtM2FjYi1hNTFkLWU5MGUtNTA1ZDk3MzMyNWQ3IiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MTgwL3JlYWxtcy9lbnNldC1iZGNjLXJlYWxtZSIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODE4MC9yZWFsbXMvZW5zZXQtYmRjYy1yZWFsbWUiLCJzdWIiOiJkMjZmOTY5NS1lZWVhLTRjZmMtODY3Mi02MWI4NzNmMjgyOTAiLCJ0eXAiOiJSZWZyZXNoIiwiYXpwIjoiZWNvbS1jbGllbnQtYW5nIiwic2lkIjoicVdGWmxueHJ0YU5hRVp0ZFZDT3pBYXFuIiwic2NvcGUiOiJiYXNpYyBwcm9maWxlIHdlYi1vcmlnaW5zIGVtYWlsIGFjciByb2xlcyIsImF1ZF94IjoiYWNjb3VudCIsInByb3YiOiJkZWZhdWx0In0.zdp7ph5uj1sozl5EdAhjhNsLB9oQgV-mVe845G5Mz2A90E-hGM73pIsdszPDSg5A-TXTXyg9teVXJ_z8N-Oihw&client_secret=mAYzWdO6Ga1Pfomfr49fWEIpcGTI7cgAtyyWKqwI5g7RxH1PLvVaKUaP7IGHi35hMLe5oNxelEt2kpN1Ta3PR7
+
+et voial ca passe 
+![63.png](images/63.png)
+
+on reveint a sec config et pour fiatre sec avce keclock il fuat ajoute oauth2ressource server
+.oauth2ResourceServer(o2->o2.jwt(Customizer.withDefaults()));
+on ajoute ca dan sapp proerties
+ou se trouve kyclock
+spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8080/realms/ecom-web-app
+pour endpoints cetrifs
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://Localhost:8080/realms/ecom-web-app/protocol/openid-connect/certs
+se sont ceux mofdiier et corri
+http://localhost:8180/realms/enset-bdcc-realme
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8180/realms/enset-bdcc-realme/protocol/openid-connect/certs
+lzven
+on reexec
+on suppr ca n sec conf
+//                        .requestMatchers("/api/**").permitAll()
+ on essya consulter les prod depusi
+http://localhost:8087/api/products
+et voial err 401 not auhorized
+
+![64.png](images/64.png)
+on essay envouer req http
+ avec get mme prob 401
+![65.png](images/65.png)
+je me reathtif pour recucpe jwt et ke rssey
+POST http://localhost:8180/realms/enset-bdcc-realme/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&username=user2&password=Wyuw6089?&client_id=ecom-client-ang&client_secret=mAYzWdO6Ga1Pfomfr49fWEIpcGTI7cgAtyyWKqwI5g7RxH1PLvVaKUaP7IGHi35hMLe5oNxelEt2kpN1Ta3PR7
+
+
+e voila donc
+GET http://localhost:8087/api/products
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJGeVFaTXNzbEpVUTM3ZUx5SFlKY0RpMmVHRUZ2VTRrbGhwbjh3bXBVclZJIn0.eyJleHAiOjE3OTU3ODY3MzUsImlhdCI6MTc5NTc4NjQzNSwianRpIjoib25ydHJvOjJlZDQ0YTQxLWMwZDktMjJhNi03NzA3LWMwYmE4YmQ1ZTM3NCIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODE4MC9yZWFsbXMvZW5zZXQtYmRjYy1yZWFsbWUiLCJhdWQiOiJhY2NvdW50Iiwic3ViIjoiZDI2Zjk2OTUtZWVlYS00Y2ZjLTg2NzItNjFiODczZjI4MjkwIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiZWNvbS1jbGllbnQtYW5nIiwic2lkIjoiM3MwdE5jeGNLcHpjWmxTNDNrMjV4a2JtIiwiYWNyIjoiMSIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJvZmZsaW5lX2FjY2VzcyIsIkFETUlOIiwidW1hX2F1dGhvcml6YXRpb24iLCJVU0VSIiwiZGVmYXVsdC1yb2xlcy1lbnNldC1iZGNjLXJlYWxtZSJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwibmFtZSI6ImltYW5lIHRheWViaSIsInByZWZlcnJlZF91c2VybmFtZSI6InVzZXIyIiwiZ2l2ZW5fbmFtZSI6ImltYW5lIiwiZmFtaWx5X25hbWUiOiJ0YXllYmkiLCJlbWFpbCI6InVzZXIyQGdtYWlsLmNvbSJ9.P3ssk0Yw3pbSGlbpAm0rn8V5t_Y96n8LJ5LWfciEkmLjZAfz7vYQFDW745aFENkOAk3xqsaiOnBBwNQoaGSwSS02SCH2T7Pej2YSq100PN6_X51jscSyKbvZFea4M0BV-umXFX3wmmn_5v6pDjyBvhKa1ADp5d737I9ZXyGaCYUK28am8ydE5fbHSyM27XNQ-CvapVlhkx4zChxWMXmO55aYcrBPbv16E5Biny5xJlxz1UQks-0jHanBDdXmuQ-n6YxlR6nD-y9ysNduHbISd8TIwFXPnwMkX8M_moWqerPaFSLWP7AaJn6cCs56Lm9qdHc9nhwlXYKUcLwE0NjPAg
+
+je voxi l slite des prods
+![66.png](images/66.png)
+on ajoue ca n controler
+@GetMapping("/auth")
+public Authentication authentication(Authentication authentication){
+return authentication;
+on ressaye uen endpt
+GET http://localhost:8087/api/auth
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJGeVFaTXNzbEpVUTM3ZUx5SFlKY0RpMmVHRUZ2VTRrbGhwbjh3bXBVclZJIn0.eyJleHAiOjE3OTU3ODg5NDIsImlhdCI6MTc5NTc4ODY0MiwianRpIjoib25ydHJvOmU0ZjJlMjJiLTNjOGYtN2E1MS0yNGUwLTFkYjg3NTk4OTE5NSIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODE4MC9yZWFsbXMvZW5zZXQtYmRjYy1yZWFsbWUiLCJhdWQiOiJhY2NvdW50Iiwic3ViIjoiZDI2Zjk2OTUtZWVlYS00Y2ZjLTg2NzItNjFiODczZjI4MjkwIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiZWNvbS1jbGllbnQtYW5nIiwic2lkIjoib3BRMFJJRml0N0dUYUxOa01SQjBaaDVMIiwiYWNyIjoiMSIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJvZmZsaW5lX2FjY2VzcyIsIkFETUlOIiwidW1hX2F1dGhvcml6YXRpb24iLCJVU0VSIiwiZGVmYXVsdC1yb2xlcy1lbnNldC1iZGNjLXJlYWxtZSJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwibmFtZSI6ImltYW5lIHRheWViaSIsInByZWZlcnJlZF91c2VybmFtZSI6InVzZXIyIiwiZ2l2ZW5fbmFtZSI6ImltYW5lIiwiZmFtaWx5X25hbWUiOiJ0YXllYmkiLCJlbWFpbCI6InVzZXIyQGdtYWlsLmNvbSJ9.ecAU6w01LhxMZrh34wDCaIy6B5HSz5unjhB69hA-sKbQqoQ2MT7lo5Q2fXUdZjNLoMDEpDpiNRQ9xfCbZEZo-kekDKaKBcL71ufh2kJ-FYKwuFdEQ1FZuhQzgThqX9ud_e3azgx5zcWXaFQLxlUc7Buyc4vSXoT_LEzBLFp6qk6eWgk9hM2uq3gausRsHGicEkcm1IjrrHOt-93jbaFx6uJncvPQUH-1sPo29Jd9-ql_6alhjePubZr-5HIInyASJlG43OQ65JOil8Q0RI9PrDM0IEoqfMQIglLSau4usP4pZ-CEiEnTMr65Iz-9HdZNqiscISKQoOeVZfCqn-VjZA
+
+
+![67.png](images/67.png)
+on ajou ca en sec conf
+.authorizeHttpRequests(ar->ar.requestMatchers("/api/products/**").hasAuthority("ADMIN"))
+![68.png](images/68.png)
+et voila les roles
 ## 7. Sécuriser avec Keycloak (JWT et rôles)
 
 ### 7.1 Le convertisseur de rôles
