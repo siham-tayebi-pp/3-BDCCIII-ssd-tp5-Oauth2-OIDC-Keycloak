@@ -828,6 +828,7 @@ Créez un dossier `app-angular`, ouvrez-le dans un terminal, puis :
 ```bash
 ng new app-angular --directory ./ --no-standalone --style=css --ssr=false --routing
 ```
+![45.png](images/45.png)
 
 > Le professeur utilise `--no-standalone` pour rester sur l'approche avec modules (NgModule), plus proche de l'ancien fonctionnement d'Angular. Il est possible d'utiliser le mode standalone, mais le code sera différent.
 
