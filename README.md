@@ -311,7 +311,7 @@ Ce guide reprend, dans l'ordre, les étapes montrées par le professeur dans la 
 ## 0. Architecture visée
 
 ```
-Navigateur (Angular :4200)  --->  Keycloak (:8080)   [login, tokens]
+Navigateur (Angular :4200)  --->  Keycloak (:8180)   [login, tokens]
         |
         | requête HTTP + header Authorization: Bearer <JWT>
         v
@@ -323,7 +323,7 @@ inventory-service (Spring Boot :8087)  --->  vérifie la signature du JWT via la
 - **Angular** (frontend) redirige vers Keycloak pour la connexion, puis envoie le JWT à chaque requête.
 - **Spring Boot** (backend) vérifie le JWT et applique les règles d'accès selon les rôles.
 ![44.png](images/44.png)
- > **Port Keycloak :** dans ce guide, Keycloak est sur `http://localhost:8080`. Si Jenkins occupe ce port, lancez Keycloak sur `8180` (`kc.bat start-dev --http-port=8180`) et remplacez `8080` par `8180` partout (`application.properties`, Angular, Postman).
+ > **Port Keycloak :** dans ce guide, Keycloak est sur `http://localhost:8180`. Si Jenkins occupe ce port, lancez Keycloak sur `8180` (`kc.bat start-dev --http-port=8180`) et remplacez `8180` par `8180` partout (`application.properties`, Angular, Postman).
 
 ---
 
@@ -483,7 +483,7 @@ spring.cloud.config.enabled=false
 spring.cloud.discovery.enabled=false
 
 # Clé publique de Keycloak pour vérifier la signature des JWT
-spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8080/realms/bdcc/protocol/openid-connect/certs
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8180/realms/bdcc/protocol/openid-connect/certs
 ```
 
 ---
@@ -541,6 +541,7 @@ public class ProductController {
 
 Démarrez `inventory-service`, puis ouvrez `http://localhost:8087/api/products`.
 
+![49.png](images/49.png)
 Résultat attendu : **401** ou page de connexion. Spring Security, par défaut, protège **toutes** les routes et demande une authentification.
 
 ---
@@ -602,7 +603,7 @@ http.csrf(csrf -> csrf.disable())
 ```
 
 Ouvrez ensuite `http://localhost:8087/h2-console`, JDBC URL : `jdbc:h2:mem:product-db`.
-
+![48.png](images/48.png)
 ---
 
 ## 6. Configuration CORS
@@ -784,7 +785,7 @@ Si le client a **Client authentication** activé, la requête doit aussi conteni
 ### 8.2 Obtenir un token
 
 - **Méthode :** `POST`
-- **URL :** `http://localhost:8080/realms/bdcc/protocol/openid-connect/token`
+- **URL :** `http://localhost:8180/realms/bdcc/protocol/openid-connect/token`
 - **Header :** `Content-Type: application/x-www-form-urlencoded`
 - **Body :**
 
@@ -829,6 +830,7 @@ Créez un dossier `app-angular`, ouvrez-le dans un terminal, puis :
 ng new app-angular --directory ./ --no-standalone --style=css --ssr=false --routing
 ```
 ![45.png](images/45.png)
+![46.png](images/46.png)
 
 > Le professeur utilise `--no-standalone` pour rester sur l'approche avec modules (NgModule), plus proche de l'ancien fonctionnement d'Angular. Il est possible d'utiliser le mode standalone, mais le code sera différent.
 
@@ -837,6 +839,7 @@ ng new app-angular --directory ./ --no-standalone --style=css --ssr=false --rout
 ```bash
 npm install bootstrap bootstrap-icons
 ```
+![47.png](images/47.png)
 
 Dans `angular.json`, section `build > options` :
 
@@ -849,13 +852,15 @@ Dans `angular.json`, section `build > options` :
   "node_modules/bootstrap/dist/js/bootstrap.bundle.js"
 ]
 ```
-
+On ajout rnvabar depusi botstrap 5
+![50.png](images/50.png)
 ### 9.3 Générer les composants
 
 ```bash
 ng g c ui/products
 ng g c ui/customers
 ```
+![51.png](images/51.png)
 
 ### 9.4 Routage
 
@@ -1024,7 +1029,7 @@ function initializeKeycloak(keycloak: KeycloakService) {
   return () =>
     keycloak.init({
       config: {
-        url: 'http://localhost:8080',
+        url: 'http://localhost:8180',
         realm: 'bdcc',
         clientId: 'app-ang',
       },
@@ -1287,18 +1292,18 @@ Les utilisateurs qui s'inscrivent ou changent de mot de passe doivent respecter 
 
 ## 19. Erreurs rencontrées dans le cours et solutions
 
-| Erreur | Cause | Solution |
-|---|---|---|
-| `Address already in use: 8080` | Jenkins ou autre service utilise le port | Lancer Keycloak sur `8180` |
-| `401` sur `/api/products` | Pas de token ou token expiré | Obtenir un nouveau token, ou utiliser le refresh token |
-| `403` sur la console H2 | Route non autorisée, ou frames bloquées | `permitAll()` sur `/h2-console/**` et `frameOptions.disable()` |
-| `403` avec un token valide | Rôle insuffisant, ou rôles non convertis | Vérifier le convertisseur et la section `authorities` de `/api/auth` |
-| `blocked by CORS policy` | Pas de configuration CORS, ou CORS ignoré par Spring Security | Bean `CorsConfigurationSource` + `http.cors(...)` |
-| `Invalid client secret` (Angular) | Client authentication activé pour le frontend | Désactiver **Client authentication** pour `app-ang` |
+| Erreur                             | Cause | Solution |
+|------------------------------------|---|---|
+| `Address already in use: 8180`     | Jenkins ou autre service utilise le port | Lancer Keycloak sur `8180` |
+| `401` sur `/api/products`          | Pas de token ou token expiré | Obtenir un nouveau token, ou utiliser le refresh token |
+| `403` sur la console H2            | Route non autorisée, ou frames bloquées | `permitAll()` sur `/h2-console/**` et `frameOptions.disable()` |
+| `403` avec un token valide         | Rôle insuffisant, ou rôles non convertis | Vérifier le convertisseur et la section `authorities` de `/api/auth` |
+| `blocked by CORS policy`           | Pas de configuration CORS, ou CORS ignoré par Spring Security | Bean `CorsConfigurationSource` + `http.cors(...)` |
+| `Invalid client secret` (Angular)  | Client authentication activé pour le frontend | Désactiver **Client authentication** pour `app-ang` |
 | `unauthorized_client` avec Postman | Direct access grants désactivé | Cocher **Direct access grants** sur le client |
-| `No provider for KeycloakService` | Module Keycloak non importé | Ajouter `KeycloakAngularModule` dans `app.module.ts` |
+| `No provider for KeycloakService`  | Module Keycloak non importé | Ajouter `KeycloakAngularModule` dans `app.module.ts` |
 | Erreur de compilation sur `router` | Angular 17+ demande `override` | Ajouter `protected override readonly router` |
-| Redirection en boucle après login | Route ou URL de redirection mal configurée | Vérifier **Valid redirect URIs** et **Web origins** dans Keycloak |
+| Redirection en boucle après login  | Route ou URL de redirection mal configurée | Vérifier **Valid redirect URIs** et **Web origins** dans Keycloak |
 
 ---
 
