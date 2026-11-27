@@ -906,7 +906,7 @@ et voila les roles
 
 Par défaut, Spring lit les autorités dans le claim `scope`. Keycloak place les rôles dans un claim `realm_access`, sous la clé `roles`. Il faut donc un convertisseur personnalisé.
 
-`security/KeycloakJwtConverter.java`
+`security/JwtAuthConverter.java`
 
 ```java
 package com.example.inventoryservice.security;
@@ -928,7 +928,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
-public class KeycloakJwtConverter implements Converter<Jwt, AbstractAuthenticationToken> {
+public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
     private final JwtGrantedAuthoritiesConverter defaultConverter = new JwtGrantedAuthoritiesConverter();
 
@@ -956,10 +956,21 @@ public class KeycloakJwtConverter implements Converter<Jwt, AbstractAuthenticati
 ```
 
 > **Explication :** le convertisseur lit le claim `realm_access.roles` du JWT, par exemple `["user", "admin"]`, et crée une autorité Spring pour chaque rôle. Les rôles sont donc utilisés **sans préfixe** `ROLE_` : on vérifiera avec `hasAuthority("admin")`.
-
+on tetse on sahentife pusi o test et la on voix liste authorities 
+![69.png](images/69.png)
+> ui o  tets avec user1 qui na pas role admin on voix 403
+.a
+.authorizeHttpRequests(ar->ar.requestMatchers("/api/products/**").hasAuthority("ADMIN"))
+> comem on a 
+ ![70.png](images/70.png)
+> 
+> 
 ### 7.2 Règles d'accès finales
 
 Mettez à jour `SecurityConfig` :
+on commente ca
+
+[//]: # (.authorizeHttpRequests&#40;ar->ar.requestMatchers&#40;"/api/products/**"&#41;.hasAuthority&#40;"ADMIN"&#41;&#41;)
 
 ```java
 package com.example.inventoryservice.security;
@@ -1016,6 +1027,17 @@ public class SecurityConfig {
     }
 }
 ```
+et apres lavoir commnt on emt dans conollr
+@PreAuthorize("hasAuthority('ADMIN')")
+products
+@PreAuthorize("hasAuthority('USER')")
+
+gProduByd id
+et pare son ajout dans sceurity config
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
+et on teseavc user1 qui na pas droit admin t va voir 403
 
 > **Règles :**
 > - `GET /api/products` (liste complète) : rôle **admin** uniquement.
