@@ -3,15 +3,13 @@ package net.tayebi.inventoryservice.web;
 import net.tayebi.inventoryservice.entities.Product;
 import net.tayebi.inventoryservice.repositories.ProductRepository;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api")
+//@CrossOrigin("*")
 public class ProductController {
 
     private final ProductRepository productRepository;
@@ -37,4 +35,5 @@ public class ProductController {
     public Authentication authentication(Authentication authentication) {
         return authentication;
     }
+
 }

@@ -606,6 +606,167 @@ Ouvrez ensuite `http://localhost:8087/h2-console`, JDBC URL : `jdbc:h2:mem:produ
 ![48.png](images/48.png)
 ---
 
+
+
+## 9. Créer le frontend Angular
+
+### 9.1 Générer le projet dans le dossier courant
+
+Créez un dossier `app-angular`, ouvrez-le dans un terminal, puis :
+
+```bash
+ng new app-angular --directory ./ --no-standalone --style=css --ssr=false --routing
+```
+![45.png](images/45.png)
+![46.png](images/46.png)
+
+> Le professeur utilise `--no-standalone` pour rester sur l'approche avec modules (NgModule), plus proche de l'ancien fonctionnement d'Angular. Il est possible d'utiliser le mode standalone, mais le code sera différent.
+
+### 9.2 Installer Bootstrap
+
+```bash
+npm install bootstrap bootstrap-icons
+```
+![47.png](images/47.png)
+
+Dans `angular.json`, section `build > options` :
+
+```json
+"styles": [
+  "node_modules/bootstrap/dist/css/bootstrap.min.css",
+  "src/styles.css"
+],
+"scripts": [
+  "node_modules/bootstrap/dist/js/bootstrap.bundle.js"
+]
+```
+On ajout rnvabar depusi botstrap 5
+![50.png](images/50.png)
+### 9.3 Générer les composants
+
+```bash
+ng g c ui/products
+ng g c ui/customers
+```
+![51.png](images/51.png)
+
+### 9.4 Routage
+
+`src/app/app-routing.module.ts`
+
+```ts
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { ProductsComponent } from './ui/products/products.component';
+import { CustomersComponent } from './ui/customers/customers.component';
+
+const routes: Routes = [
+  { path: 'products', component: ProductsComponent },
+  { path: 'customers', component: CustomersComponent },
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule],
+})
+export class AppRoutingModule {}
+```
+
+> Les routes seront protégées avec un guard à l'étape 11.
+
+### 9.5 Barre de navigation
+
+`src/app/app.component.html` : remplacez le contenu par une barre de navigation Bootstrap (copiée d'un exemple, comme dans le cours) puis gardez uniquement :
+
+```html
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Ecom</a>
+    <ul class="navbar-nav me-auto">
+      <li class="nav-item">
+        <a class="nav-link" routerLink="products">Products</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" routerLink="customers">Customers</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <router-outlet></router-outlet>
+</div>
+```
+
+Lancez `ng serve` et ouvrez `http://localhost:4200`.
+
+---
+n tetse lapp la ya  
+customers 
+![52.png](images/52.png)
+products
+![53.png](images/53.png)
+mais que avec producs et customers affiches dnas les pages
+### 10.1 Composant produits
+
+`src/app/ui/products/products.component.ts`
+
+```ts
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+@Component({
+  selector: 'app-products',
+  templateUrl: './products.component.html',
+  styleUrls: ['./products.component.css'],
+})
+export class ProductsComponent implements OnInit {
+  public products: any[] = [];
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.http.get<any[]>('http://localhost:8087/api/products').subscribe({
+      next: (data) => (this.products = data),
+      error: (err) => console.log(err),
+    });
+  }
+}
+```
+
+`src/app/ui/products/products.component.html`
+
+```html
+<h2>Products</h2>
+<table class="table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Price</th>
+      <th>Quantity</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let p of products">
+      <td>{{ p.id }}</td>
+      <td>{{ p.name }}</td>
+      <td>{{ p.price }}</td>
+      <td>{{ p.quantity }}</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+Ajoutez `HttpClientModule` dans les `imports` de `app.module.ts`.
+
+> **Problème de CORS :** si la liste ne s'affiche pas et que la console indique *blocked by CORS policy*, vérifiez que la configuration CORS (étape 6) est bien présente et que le service a bien redémarré.
+![54.png](images/54.png)
+On me cross origin * dans contorller et c bon nos prdsucs se marche nbein
+![55.png](images/55.png)
+
+On eput supprimer cet cross orignin et mttre  
+---
 ## 6. Configuration CORS
 
 Sans CORS, le navigateur bloque les requêtes d'Angular (`localhost:4200`) vers Spring (`localhost:8087`). L'erreur apparaît dans les outils de développement : *blocked by CORS policy*.
@@ -635,6 +796,7 @@ CorsConfigurationSource corsConfigurationSource() {
     return source;
 }
 ```
+on restets aprs vaoir mit a et supriemr cross oriigni et c bon
 
 Et dans la chaîne de filtres :
 
@@ -817,159 +979,6 @@ Testez :
 Sans header `Authorization`, la réponse est **401**.
 
 > Dans `/api/auth`, vérifiez la section `authorities` : elle doit contenir `user` et `admin` pour `user2`.
-
----
-
-## 9. Créer le frontend Angular
-
-### 9.1 Générer le projet dans le dossier courant
-
-Créez un dossier `app-angular`, ouvrez-le dans un terminal, puis :
-
-```bash
-ng new app-angular --directory ./ --no-standalone --style=css --ssr=false --routing
-```
-![45.png](images/45.png)
-![46.png](images/46.png)
-
-> Le professeur utilise `--no-standalone` pour rester sur l'approche avec modules (NgModule), plus proche de l'ancien fonctionnement d'Angular. Il est possible d'utiliser le mode standalone, mais le code sera différent.
-
-### 9.2 Installer Bootstrap
-
-```bash
-npm install bootstrap bootstrap-icons
-```
-![47.png](images/47.png)
-
-Dans `angular.json`, section `build > options` :
-
-```json
-"styles": [
-  "node_modules/bootstrap/dist/css/bootstrap.min.css",
-  "src/styles.css"
-],
-"scripts": [
-  "node_modules/bootstrap/dist/js/bootstrap.bundle.js"
-]
-```
-On ajout rnvabar depusi botstrap 5
-![50.png](images/50.png)
-### 9.3 Générer les composants
-
-```bash
-ng g c ui/products
-ng g c ui/customers
-```
-![51.png](images/51.png)
-
-### 9.4 Routage
-
-`src/app/app-routing.module.ts`
-
-```ts
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-import { ProductsComponent } from './ui/products/products.component';
-import { CustomersComponent } from './ui/customers/customers.component';
-
-const routes: Routes = [
-  { path: 'products', component: ProductsComponent },
-  { path: 'customers', component: CustomersComponent },
-];
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule],
-})
-export class AppRoutingModule {}
-```
-
-> Les routes seront protégées avec un guard à l'étape 11.
-
-### 9.5 Barre de navigation
-
-`src/app/app.component.html` : remplacez le contenu par une barre de navigation Bootstrap (copiée d'un exemple, comme dans le cours) puis gardez uniquement :
-
-```html
-<nav class="navbar navbar-expand-lg bg-body-tertiary">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">Ecom</a>
-    <ul class="navbar-nav me-auto">
-      <li class="nav-item">
-        <a class="nav-link" routerLink="products">Products</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" routerLink="customers">Customers</a>
-      </li>
-    </ul>
-  </div>
-</nav>
-
-<div class="container mt-4">
-  <router-outlet></router-outlet>
-</div>
-```
-
-Lancez `ng serve` et ouvrez `http://localhost:4200`.
-
----
-
-## 10. Afficher les produits (sans sécurité Angular)
-
-### 10.1 Composant produits
-
-`src/app/ui/products/products.component.ts`
-
-```ts
-import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-
-@Component({
-  selector: 'app-products',
-  templateUrl: './products.component.html',
-  styleUrls: ['./products.component.css'],
-})
-export class ProductsComponent implements OnInit {
-  public products: any[] = [];
-
-  constructor(private http: HttpClient) {}
-
-  ngOnInit(): void {
-    this.http.get<any[]>('http://localhost:8087/api/products').subscribe({
-      next: (data) => (this.products = data),
-      error: (err) => console.log(err),
-    });
-  }
-}
-```
-
-`src/app/ui/products/products.component.html`
-
-```html
-<h2>Products</h2>
-<table class="table">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>Price</th>
-      <th>Quantity</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let p of products">
-      <td>{{ p.id }}</td>
-      <td>{{ p.name }}</td>
-      <td>{{ p.price }}</td>
-      <td>{{ p.quantity }}</td>
-    </tr>
-  </tbody>
-</table>
-```
-
-Ajoutez `HttpClientModule` dans les `imports` de `app.module.ts`.
-
-> **Problème de CORS :** si la liste ne s'affiche pas et que la console indique *blocked by CORS policy*, vérifiez que la configuration CORS (étape 6) est bien présente et que le service a bien redémarré.
 
 ---
 

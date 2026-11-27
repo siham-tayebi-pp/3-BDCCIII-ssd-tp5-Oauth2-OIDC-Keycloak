@@ -1,4 +1,5 @@
 <h2>Products</h2>
+
 <table class="table">
   <thead>
   <tr>
@@ -8,12 +9,15 @@
     <th>Quantity</th>
   </tr>
   </thead>
+
   <tbody>
-<!--  <tr *ngFor="let p of products">-->
-<!--    <td>{{ p.id }}</td>-->
-<!--    <td>{{ p.name }}</td>-->
-<!--    <td>{{ p.price }}</td>-->
-<!--    <td>{{ p.quantity }}</td>-->
-<!--  </tr>-->
+    @for (p of products; track p.id) {
+      <tr>
+        <td>{{ p.id }}</td>
+        <td>{{ p.name }}</td>
+        <td>{{ p.price }}</td>
+        <td>{{ p.quantity }}</td>
+      </tr>
+    }
   </tbody>
 </table>
