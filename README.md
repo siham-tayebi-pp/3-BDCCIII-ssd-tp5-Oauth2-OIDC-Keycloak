@@ -1996,10 +1996,28 @@ http://localhost:8088/api/orders/08ce3560-4aee-453e-b53c-6c99d06476d5
 on jaute sawagger en pemrit all
 on tetse swagger ca mrche
 ![93.png](images/93.png)
+et voial on essaye
+avec id dans swagger
+e o voial orders bu id saffiche avce ses prducts
+![96.png](images/96.png) 
 on suppr ca de onifg pur ca dmenagde auth
 "/api/orders/**"
-et voial on essaye 
+et err 401 bien vu: si on comuslte  http://localhost:8088/api/orders
+
+![97.png](images/97.png)
+mainntnn il dmenade auth donc on satuh depuis ttp slcient de intellij e on nevoie rq apres
 Quand le frontend appelle `order-service` avec un token, `order-service` appelle ensuite `inventory-service`. Sans token, l'appel est refusé (**401**). Il faut donc transmettre le même token dans l'appel Feign.
+on fiat donc ca
+POST http://localhost:8180/realms/enset-bdcc-realme/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&username=user2&password=Wyuw6089?&client_id=ecom-client-ang
+
+![98.png](images/98.png)
+GET http://localhost:8088/api/orders
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJGeVFaTXNzbEpVUTM3ZUx5SFlKY0RpMmVHRUZ2VTRrbGhwbjh3bXBVclZJIn0.eyJleHAiOjE3OTU4NjQyOTksImlhdCI6MTc5NTg2Mzk5OSwianRpIjoib25ydHJvOmQwNDU4ZTcxLWQwMzAtY2IwOC04NDljLTA0NzQyNGM5ZWVmZCIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODE4MC9yZWFsbXMvZW5zZXQtYmRjYy1yZWFsbWUiLCJhdWQiOiJhY2NvdW50Iiwic3ViIjoiZDI2Zjk2OTUtZWVlYS00Y2ZjLTg2NzItNjFiODczZjI4MjkwIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiZWNvbS1jbGllbnQtYW5nIiwic2lkIjoiNXM2NFVmcnptQlRnVFBFLU5qc0dkYXlLIiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwOi8vbG9jYWxob3N0OjQyMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwiQURNSU4iLCJ1bWFfYXV0aG9yaXphdGlvbiIsIlVTRVIiLCJkZWZhdWx0LXJvbGVzLWVuc2V0LWJkY2MtcmVhbG1lIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJuYW1lIjoiaW1hbmUgdGF5ZWJpIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidXNlcjIiLCJnaXZlbl9uYW1lIjoiaW1hbmUiLCJmYW1pbHlfbmFtZSI6InRheWViaSIsImVtYWlsIjoidXNlcjJAZ21haWwuY29tIn0.b5_Cisp6YtcUXgYXNUotDSUykBsYMdiRkBtlK6VZDRo0AdXj019N101pHusftBF-bTSQicSxbMZoHEV8XTF7B2GqcZO89JMh1BwUo8MWgYtVCDBwfI8I8j2ZF-b6LsmoXQvFOf0eyTmxdR0S-nbeNmuxBqvDFESVjzZelQ-saJAF0Q8h55ewGfZrhG47eiKdjfhwmPAldmWFLoAkMtDQTysEyOhvPU9nDoTBP2wQ6ifsssm4BQ2fMnzJ6gmkgKNTi9icg4reR1bNoqQ5kSm85pyu92rtFzh41plcpmh4amUqGCldA8rN2_gXUu4e8l5Hyj1VkI7JPGQ8IRZ6wW4uGw
+![99.png](images/99.png) a liste de spr orders avce leus prods
+maintn eon apsse agrnner notre fornts compnennt
 
 `feign/FeignInterceptor.java`
 
@@ -2077,6 +2095,7 @@ Dans le projet Angular :
 ```bash
 ng g c ui/orders
 ```
+![100.png](images/100.png)
 
 ### 14.2 Code du composant liste
 

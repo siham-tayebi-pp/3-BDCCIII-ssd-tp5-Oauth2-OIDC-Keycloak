@@ -1,4 +1,3 @@
-
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
@@ -8,10 +7,8 @@ import { App } from './app';
 import { Products } from './ui/products/products';
 import { Customers } from './ui/customers/customers';
 
-import {
-  KeycloakAngularModule,
-  KeycloakService
-} from 'keycloak-angular';
+import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
+import { Orders } from './ui/orders/orders';
 
 function initializeKeycloak(keycloak: KeycloakService) {
   return () =>
@@ -19,35 +16,26 @@ function initializeKeycloak(keycloak: KeycloakService) {
       config: {
         url: 'http://localhost:8180',
         realm: 'enset-bdcc-realme',
-        clientId: 'ecom-client-ang'
+        clientId: 'ecom-client-ang',
       },
       initOptions: {
         onLoad: 'check-sso',
-        checkLoginIframe: false
-      }
+        checkLoginIframe: false,
+      },
     });
 }
 
 @NgModule({
-  declarations: [
-    App,
-    Customers
-  ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    HttpClientModule,
-    Products,
-    KeycloakAngularModule
-  ],
+  declarations: [App, Customers, Orders],
+  imports: [BrowserModule, AppRoutingModule, HttpClientModule, Products, KeycloakAngularModule],
   providers: [
     {
       provide: APP_INITIALIZER,
       useFactory: initializeKeycloak,
       multi: true,
-      deps: [KeycloakService]
-    }
+      deps: [KeycloakService],
+    },
   ],
-  bootstrap: [App]
+  bootstrap: [App],
 })
 export class AppModule {}
