@@ -1869,6 +1869,12 @@ Imports nécessaires : `java.time.LocalDate`, `java.util.List`, `java.util.Rando
 > Le professeur crée d'abord des commandes sans sécurité, puis vérifie dans la console H2. La sécurité est ajoutée à l'étape suivante.
 
 Démarrer `order-service`, puis ouvrir `http://localhost:8088/h2-console` avec la JDBC URL `jdbc:h2:mem:order-db`. Vérifier que les tables `orders` et `product_item` contiennent les données.
+et voial don nos orders bein ajoute ts
+
+![89.png](images/89.png)
+
+e nos products itmes bien ajotue
+![90.png](images/90.png)
 
 ---
 
@@ -1904,6 +1910,7 @@ Dans `SecurityConfig`, adapter les règles d'accès.
 ```
 
 > Ne pas oublier `http.cors(Customizer.withDefaults())` et le bean `CorsConfigurationSource`, comme dans `inventory-service`. Sans cela, Angular ne peut pas appeler `localhost:8088`.
+> 
 
 ### 10.2 Documentation Swagger
 
@@ -1916,13 +1923,13 @@ Ouvrir `http://localhost:8088/swagger-ui.html`. Si la page demande une authentif
 `web/OrderRestController.java`
 
 ```java
-package ma.enset.orderservice.web;
+package net.tayebi.orderservice.web;
 
 import lombok.RequiredArgsConstructor;
-import ma.enset.orderservice.entities.Order;
-import ma.enset.orderservice.entities.ProductItem;
-import ma.enset.orderservice.feign.ProductRestClient;
-import ma.enset.orderservice.repositories.OrderRepository;
+import net.tayebi.orderservice.entities.Order;
+import net.tayebi.orderservice.entities.ProductItem;
+import net.tayebi.orderservice.feign.InventoryRestClient;
+import net.tayebi.orderservice.repositories.OrderRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -1930,31 +1937,39 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api")
-@RequiredArgsConstructor
 public class OrderRestController {
+    private OrderRepository orderRepository;
+    private InventoryRestClient inventoryRestClient;
 
-    private final OrderRepository orderRepository;
-    private final ProductRestClient productRestClient;
-
-    @GetMapping("/orders")
-    public List<Order> listOrders() {
-        return orderRepository.findAll();
+    public OrderRestController(OrderRepository orderRepository, InventoryRestClient inventoryRestClient) {
+        this.orderRepository = orderRepository;
+        this.inventoryRestClient = inventoryRestClient;
     }
 
+    @GetMapping("/orders")
+    public List<Order> findAllOrders(){
+        List<Order> allOrders = orderRepository.findAll();
+//        allOrders.forEach(o->{
+//            o.getProductItems().forEach(pi->{
+//                pi.setProduct(inventoryRestClient.findProductById(pi.getProductId()));
+//            });
+//        });
+        return allOrders;
+    }
     @GetMapping("/orders/{id}")
-    public Order getOrder(@PathVariable String id) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Commande introuvable : " + id));
-
-        // Enrichir chaque ligne avec le détail du produit (inventory-service)
-        for (ProductItem item : order.getProductItems()) {
-            item.setProduct(productRestClient.getProductById(item.getProductId()));
-        }
+    public Order findOrderById(@PathVariable String id){
+        Order order = orderRepository.findById(id).get();
+//        order.getProductItems().forEach(pi->{
+//            pi.setProduct(inventoryRestClient.findProductById(pi.getProductId()));
+//        });
         return order;
     }
 }
+
 ```
 
 Pour la liste (`/api/orders`), le professeur ne recharge pas les produits. Vous pouvez le faire de la même manière dans une boucle.
@@ -1963,6 +1978,13 @@ Redémarrer `order-service`.
 
 ---
 
+on et est:http://localhost:8088/api/orders
+![91.png](images/91.png)
+
+on ets aussi avc ca
+http://localhost:8088/api/orders/b926d1af-31e3-4309-9f2f-1ce8a4a4cd0c
+e ca marce
+![92.png](images/92.png)
 ## Étape 12 : Propager le token avec un intercepteur Feign
 
 Quand le frontend appelle `order-service` avec un token, `order-service` appelle ensuite `inventory-service`. Sans token, l'appel est refusé (**401**). Il faut donc transmettre le même token dans l'appel Feign.
