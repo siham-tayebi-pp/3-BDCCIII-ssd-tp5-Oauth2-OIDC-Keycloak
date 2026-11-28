@@ -9,6 +9,7 @@ import { Customers } from './ui/customers/customers';
 
 import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
 import { Orders } from './ui/orders/orders';
+import { OrderDetails } from './ui/order-details/order-details';
 
 function initializeKeycloak(keycloak: KeycloakService) {
   return () =>
@@ -26,7 +27,7 @@ function initializeKeycloak(keycloak: KeycloakService) {
 }
 
 @NgModule({
-  declarations: [App, Customers, Orders],
+  declarations: [App, Customers, ],
   imports: [BrowserModule, AppRoutingModule, HttpClientModule, Products, KeycloakAngularModule],
   providers: [
     {
