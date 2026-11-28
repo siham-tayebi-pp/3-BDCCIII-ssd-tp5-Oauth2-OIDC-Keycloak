@@ -1985,8 +1985,20 @@ on ets aussi avc ca
 http://localhost:8088/api/orders/b926d1af-31e3-4309-9f2f-1ce8a4a4cd0c
 e ca marce
 ![92.png](images/92.png)
-## Étape 12 : Propager le token avec un intercepteur Feign
 
+et on apres vaori modfe en conrotller pour voir mme proedutsietmes ca marche don:
+http://localhost:8088/api/orders
+![94.png](images/94.png)
+http://localhost:8088/api/orders/08ce3560-4aee-453e-b53c-6c99d06476d5
+![95.png](images/95.png)
+## Étape 12 : Propager le
+
+on jaute sawagger en pemrit all
+on tetse swagger ca mrche
+![93.png](images/93.png)
+on suppr ca de onifg pur ca dmenagde auth
+"/api/orders/**"
+et voial on essaye 
 Quand le frontend appelle `order-service` avec un token, `order-service` appelle ensuite `inventory-service`. Sans token, l'appel est refusé (**401**). Il faut donc transmettre le même token dans l'appel Feign.
 
 `feign/FeignInterceptor.java`

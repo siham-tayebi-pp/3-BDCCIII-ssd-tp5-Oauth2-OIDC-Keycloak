@@ -18,7 +18,8 @@ import java.util.Arrays;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
-    private net.tayebi.orderservice.security.JwtAuthConverter jwtAuthConverter;
+
+    private final JwtAuthConverter jwtAuthConverter;
 
     public SecurityConfig(JwtAuthConverter jwtAuthConverter) {
         this.jwtAuthConverter = jwtAuthConverter;
@@ -28,15 +29,17 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .cors(Customizer.withDefaults())
-                .sessionManagement(sm->sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .csrf(csrf->csrf.disable())
-                .headers(h->h.frameOptions(fo->fo.disable()))
-                .authorizeHttpRequests(ar->ar.requestMatchers("/h2-console/**","/api/orders/**").permitAll())
-//                .authorizeHttpRequests(ar->ar.requestMatchers("/api/products/**").hasAuthority("ADMIN"))
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(csrf -> csrf.disable())
+                .headers(h -> h.frameOptions(fo -> fo.disable()))
+                .authorizeHttpRequests(ar -> ar
+//                        .requestMatchers("/h2-console/**","/api/orders/**","/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll())
+                        .requestMatchers("/h2-console/**","/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll())
                 .authorizeHttpRequests(ar->ar.anyRequest().authenticated())
-                .oauth2ResourceServer(o2->o2.jwt(jwt->jwt.jwtAuthenticationConverter(jwtAuthConverter)))
+                .oauth2ResourceServer(o2 -> o2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter)))
                 .build();
     }
+
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

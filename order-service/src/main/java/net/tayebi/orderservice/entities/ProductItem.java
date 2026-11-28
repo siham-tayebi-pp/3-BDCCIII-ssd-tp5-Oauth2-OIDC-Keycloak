@@ -6,29 +6,16 @@ import lombok.*;
 import net.tayebi.orderservice.model.Product;
 
 @Entity
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor @AllArgsConstructor @Getter @Setter @Builder @ToString
 public class ProductItem {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    // Identifiant du produit dans inventory-service
     private String productId;
-
     private double price;
     private int quantity;
-
     @ManyToOne
-    // WRITE_ONLY : évite la boucle infinie order -> productItems -> order -> ...
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Order order;
-
-    // Information récupérée depuis inventory-service (pas une colonne en base)
     @Transient
     private Product product;
 }

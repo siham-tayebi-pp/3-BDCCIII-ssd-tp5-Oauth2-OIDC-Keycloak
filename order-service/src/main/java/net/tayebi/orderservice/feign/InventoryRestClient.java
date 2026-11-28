@@ -8,7 +8,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@FeignClient(name = "inventory-service", url = "http://localhost:8087")
+@FeignClient(
+        name = "inventory-service",
+        url = "http://localhost:8087"
+)
 public interface InventoryRestClient {
 
     @GetMapping("/api/products")

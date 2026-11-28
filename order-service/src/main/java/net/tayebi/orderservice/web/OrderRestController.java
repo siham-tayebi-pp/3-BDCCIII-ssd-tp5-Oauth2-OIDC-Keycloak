@@ -6,6 +6,7 @@ import net.tayebi.orderservice.entities.Order;
 import net.tayebi.orderservice.entities.ProductItem;
 import net.tayebi.orderservice.feign.InventoryRestClient;
 import net.tayebi.orderservice.repositories.OrderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,9 +16,10 @@ import java.util.List;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class OrderRestController {
-
-    private final OrderRepository orderRepository;
-    private final InventoryRestClient inventoryRestClient;
+    @Autowired
+    private  OrderRepository orderRepository;
+    @Autowired
+    private  InventoryRestClient inventoryRestClient;
 
     @GetMapping("/orders")
     public List<Order> findAllOrders() {
