@@ -11,7 +11,7 @@ Ce compte rendu décrit, dans l'ordre des trois vidéos du professeur, tout ce q
 L'objectif est de protéger deux services métier (un inventaire de produits et un service de commandes) et une application web, sans que chaque service gère lui-même les utilisateurs. C'est **Keycloak** qui authentifie les utilisateurs et délivre des jetons JWT. Les services Spring vérifient ensuite ces jetons, et Angular les envoie à chaque requête.
 
 ![43.png](images/43.png)
-
+![44.png](images/44.png)
 L'architecture est la suivante :
 
 - **Keycloak** (port 8180, realm `enset-bdcc-realme`) : authentification, gestion des utilisateurs, rôles, délivrance des tokens.
@@ -19,7 +19,7 @@ L'architecture est la suivante :
 - **order-service** (port 8088) : gère les commandes, appelle l'inventaire avec Feign, protégé par JWT.
 - **Frontend Angular** (port 4200) : redirige vers Keycloak pour la connexion, puis appelle les deux services avec le token.
 
-![44.png](images/44.png)
+
 
 Le cours utilise le realm `bdcc` et des ports par défaut. Dans ce projet, le realm s'appelle `enset-bdcc-realme` et Keycloak tourne sur le port `8180`, car le port `8080` était déjà occupé par Jenkins. Ces valeurs sont utilisées partout dans la suite.
 
